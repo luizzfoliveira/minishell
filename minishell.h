@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/03 14:34:26 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/03 18:55:41 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,18 @@
 # define ENV 6
 # define EXIT 7
 
+typedef struct args
+{
+	char		*arg;
+	struct args	*next;
+}	t_args;
+
 typedef struct cmds
 {
 	char		*cmd;
 	char		*flags;
-	char		*arg;
+	t_args		*args;
+	char		*out;
 	struct cmds	*next;
 }	t_cmds;
 

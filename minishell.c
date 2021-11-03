@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/03 14:29:57 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/03 20:16:56 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,15 @@ void	print_history(int log)
 		printf("%d %s\n", ++i, line);
 		free(line);
 	}
+}
+
+void	init_cmds(t_cmds *cmds)
+{
+	cmds->cmd = 0;
+	cmds->flags = 0;
+	cmds->args = 0;
+	cmds->out = 0;
+	cmds->next = 0;
 }
 
 /* manage error */
@@ -57,17 +66,31 @@ int	str_to_cmd(char *str, int *j)
 	return (cmd);
 }
 
-void	executor(int *cmds, int size, char **args)
+void	executor(t_cmds *cmds)
 {
-	int	i;
+	t_cmds	*iter;
+	t_cmds	*next;
+	t_args	*next_arg;
 
-	i = -1;
-	while (++i < size)
+	iter = cmds;
+	while (iter != 0)
 	{
-		if (cmds[i] == ECHO)
-			printf("%s\n", args[i]);
-		else if (cmds[i] == ECHO_OPT)
-			printf("%s", args[i]);
+		printf("cmd = %s\n", iter->cmd);
+		if (iter->flags)
+		{
+			printf("flags = %s\n", iter->flags);
+			free(iter->flags);
+		}
+		while (iter->args)
+		{
+			printf("args = %s\n", iter->args->arg);
+			next_arg = iter->args->next;
+			free(iter->args);
+			iter->args = next_arg;
+		}
+		next = iter->next;
+		free(iter);
+		iter = next;
 	}
 }
 
@@ -113,7 +136,7 @@ void	get_arg(char *line, int *j, char **arg)
 	}
 }
 
-/* char	*get_cmd(char *line, int *count)
+char	*get_cmd(char *line, int *count)
 {
 	char	*cmd;
 	int		i;
@@ -121,11 +144,10 @@ void	get_arg(char *line, int *j, char **arg)
 	i = 0;
 	while (line[i] != 0 && line[i] != ' ' && line[i] != '|' && line[i] != ';')
 		i++;
-	if (line[0] == )
 	cmd = ft_strndup(line, i);
 	(*count) += i;
 	return (cmd);
-} */
+}
 
 char	*get_flags(char *line, int *count)
 {
@@ -144,50 +166,6 @@ char	*get_flags(char *line, int *count)
 	return (0);
 }
 
-/* fazer os argumentos em lista tambem? */
-/* char	*get_args(char *line, int *count)
-{
-	char	*args;
-	int		literal;
-	int		i;
-
-	literal = 0;
-	i = 0;
-	while (line[i] != 0 && line[i] != '|' && line[i] != ';')
-		i++;
-	if (line)
-} */
-
-/* ainda nao cuido de quando vem dois | juntos (||) */
-/* t_cmds	*parser(char *line)
-{
-	t_cmds	*cmds;
-	t_cmds	*iter;
-	char	*quotes;
-	int		i;
-	int		j;
-
-	quotes = ft_strchr(line, '"');
-	cmds = malloc(sizeof (t_cmds));
-	cmds->next = 0;
-	iter = cmds;
-	i = -1;
-	j = -1;
-	while (line[++j] != 0)
-	{
-		while (line[j] == ' ')
-			j++;
-		iter->cmd = get_cmd(line + j, &j);
-		while (line[j] == ' ')
-			j++;
-		iter->flags = get_flags(line + j, &j);
-		while (line[j] == ' ')
-			j++;
-		iter->arg = get_args(line + j, &j);
-	}
-	return (cmds);
-}
-
 char	get_quote(char *line)
 {
 	int	i;
@@ -200,7 +178,86 @@ char	get_quote(char *line)
 		if (line[i] == '\'')
 			return ('\'');
 	}
-	return ('"');
+	return (0);
+}
+
+/* fazer os argumentos em lista tambem? */
+t_args	*get_args(char *line, int *count)
+{
+	t_args	*args;
+	t_args	*iter;
+	char	quote;
+	int		i;
+	int		j;
+
+	quote = get_quote(line);
+	args = malloc(sizeof (t_args));
+	args->arg = 0;
+	args->next = 0;
+	iter = args;
+	i = 0;
+	while (line[i] != 0 && line[i] != '|' && line[i] != ';')
+	{
+		j = 0;
+		if (quote)
+			while (line[i + j] != quote)
+				j++;
+		else
+			while (line[i + j] != ' ' && line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';')
+				j++;
+		iter->arg = ft_strndup(line + i, j);
+		while (line[i + j] == ' ')
+			j++;
+		if (line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';')
+		{
+			iter->next = malloc(sizeof (t_args));
+			iter = iter->next;
+			iter->next = 0;
+		}
+		i += j;
+	}
+	(*count) += i;
+	return (args);
+}
+
+/* ainda nao cuido de quando vem dois | juntos (||)
+ * também preciso cuidar de quando passo o ; na linha */
+t_cmds	*parser(char *line)
+{
+	t_cmds	*cmds;
+	t_cmds	*iter;
+	char	*quotes;
+	int		i;
+	int		j;
+
+	quotes = ft_strchr(line, '"');
+	cmds = malloc(sizeof (t_cmds));
+	init_cmds(cmds);
+	iter = cmds;
+	i = -1;
+	j = 0;
+	while (line[j] != 0)
+	{
+		while (line[j] == ' ')
+			j++;
+		iter->cmd = get_cmd(line + j, &j);
+		while (line[j] == ' ')
+			j++;
+		iter->flags = get_flags(line + j, &j);
+		while (line[j] == ' ')
+			j++;
+		iter->args = get_args(line + j, &j);
+		while (line[j] == ' ')
+			j++;
+		if (line[j] == '|')
+		{
+			iter->next = malloc(sizeof (t_cmds));
+			iter = iter->next;
+			init_cmds(iter);
+			j++;
+		}
+	}
+	return (cmds);
 }
 
 void	check_quotation(char **line)
@@ -210,27 +267,30 @@ void	check_quotation(char **line)
 	char	c;
 	int		quote_count;
 
+	quote_count = 0;
 	c = get_quote(*line);
-	quotes = ft_strchr(*line, &c);
+	if (!c)
+		return ;
+	quotes = ft_strchr(*line, c);
 	while (quotes)
 	{
-		quotes = ft_strchr(quotes + 1, &c);
+		quotes = ft_strchr(quotes + 1, c);
 		quote_count++;
 	}
 	while (quote_count % 2 != 0)
 	{
 		line_quotes = readline("> ");
-		quotes = ft_strchr(line_quotes, &c);
+		quotes = ft_strchr(line_quotes, c);
 		while (quotes)
 		{
-			quotes = ft_strchr(quotes + 1, &c);
+			quotes = ft_strchr(quotes + 1, c);
 			quote_count++;
 		}
 		*line = ft_concat(line, "\n");
 		*line = ft_concat(line, line_quotes);
 		free(line_quotes);
 	}
-} */
+}
 
 /* ctrl d ta dando errado depois do ctrl c. Tem q corrigir o ctrl c */
 int	main(void)
@@ -250,16 +310,16 @@ int	main(void)
 		line = readline("# ");
 		if (!line)
 			break ;
-		/* check_quotation(&line); */
+		check_quotation(&line);
 		write(log, line, ft_strlen(line));
 		write(log, "\n", 1);
-		/* cmds = parser(line); */
-		/* if (!cmds)
+		cmds = parser(line);
+		if (!cmds)
 		{
 			printf("erro\n");
 			return (0);
-		} */
-		/* executor(cmds); */
+		}
+		executor(cmds);
 		free(line);
 	}
 	close(log);
