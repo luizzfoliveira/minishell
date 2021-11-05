@@ -1,6 +1,10 @@
-echo abc|cd a
-echo abc |cd a
-pwd a
-echo -n abc|pwd
-echo abc; cd abc
-t 7 | unset   | env asd | exit 7
+echo -a
+o 
+echo      ]
+echo                -n
+echo -a
+f"
+echo abc"def"
+echo "abc"def
+cho a b c
+xit 7

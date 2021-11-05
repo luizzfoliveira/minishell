@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/03 20:16:56 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/05 17:17:41 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,6 +181,22 @@ char	get_quote(char *line)
 	return (0);
 }
 
+void remove_char(char *s, char c)
+{
+	int	writer;
+	int	reader;
+
+	writer = 0;
+	reader = 0;
+	while (s[reader] != 0)
+	{
+		if (s[reader] != c)
+			s[writer++] = s[reader];
+		reader++;       
+	}
+	s[writer]=0;
+}
+
 /* fazer os argumentos em lista tambem? */
 t_args	*get_args(char *line, int *count)
 {
@@ -190,7 +206,6 @@ t_args	*get_args(char *line, int *count)
 	int		i;
 	int		j;
 
-	quote = get_quote(line);
 	args = malloc(sizeof (t_args));
 	args->arg = 0;
 	args->next = 0;
@@ -198,14 +213,13 @@ t_args	*get_args(char *line, int *count)
 	i = 0;
 	while (line[i] != 0 && line[i] != '|' && line[i] != ';')
 	{
+		quote = get_quote(line + i);
 		j = 0;
-		if (quote)
-			while (line[i + j] != quote)
-				j++;
-		else
-			while (line[i + j] != ' ' && line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';')
-				j++;
+		while (line[i + j] != ' ' && line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';')
+			j++;
 		iter->arg = ft_strndup(line + i, j);
+		if (quote)
+			remove_char(iter->arg, quote);
 		while (line[i + j] == ' ')
 			j++;
 		if (line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';')
@@ -226,11 +240,9 @@ t_cmds	*parser(char *line)
 {
 	t_cmds	*cmds;
 	t_cmds	*iter;
-	char	*quotes;
 	int		i;
 	int		j;
 
-	quotes = ft_strchr(line, '"');
 	cmds = malloc(sizeof (t_cmds));
 	init_cmds(cmds);
 	iter = cmds;
@@ -241,6 +253,7 @@ t_cmds	*parser(char *line)
 		while (line[j] == ' ')
 			j++;
 		iter->cmd = get_cmd(line + j, &j);
+		remove_char(iter->cmd, get_quote(iter->cmd));
 		while (line[j] == ' ')
 			j++;
 		iter->flags = get_flags(line + j, &j);
@@ -249,7 +262,7 @@ t_cmds	*parser(char *line)
 		iter->args = get_args(line + j, &j);
 		while (line[j] == ' ')
 			j++;
-		if (line[j] == '|')
+		if (line[j] == '|' && line[j + 1] != '|')
 		{
 			iter->next = malloc(sizeof (t_cmds));
 			iter = iter->next;
@@ -258,6 +271,103 @@ t_cmds	*parser(char *line)
 		}
 	}
 	return (cmds);
+}
+
+int	is_flag(t_cmds *cmds)
+{
+	if (cmds->flags)
+	{
+		if (!ft_strncmp(cmds->cmd, "echo", ft_strlen(cmds->cmd)) \
+		&& !ft_strncmp(cmds->flags, "-n", ft_strlen(cmds->flags)))
+			return (1);
+		return (0);
+	}
+	return (1);
+}
+
+int	is_cmd(char *cmd)
+{
+	int	len;
+
+	len = ft_strlen(cmd);
+	if (!ft_strncmp(cmd, "echo", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "cd", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "pwd", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "export", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "unset", len))
+		return (1);
+	else if (!ft_strncmp(cmd, "env", len))
+		return (1);
+	return (0);
+}
+
+void	flag_error(t_cmds *cmds)
+{
+	t_cmds	*iter;
+	t_cmds	*next;
+	t_args	*next_arg;
+
+	printf("%s: invalid option -- \'%s\'\n", cmds->cmd, &cmds->flags[1]);
+	iter = cmds;
+	while (iter != 0)
+	{
+		if (iter->flags)
+			free(iter->flags);
+		while (iter->args)
+		{
+			next_arg = iter->args->next;
+			free(iter->args);
+			iter->args = next_arg;
+		}
+		next = iter->next;
+		free(iter);
+		iter = next;
+	}
+	exit(0);
+}
+
+void	cmd_error(t_cmds *cmds)
+{
+	t_cmds	*iter;
+	t_cmds	*next;
+	t_args	*next_arg;
+
+	printf("%s: command not found\n", cmds->cmd);
+	iter = cmds;
+	while (iter != 0)
+	{
+		if (iter->flags)
+			free(iter->flags);
+		while (iter->args)
+		{
+			next_arg = iter->args->next;
+			free(iter->args);
+			iter->args = next_arg;
+		}
+		next = iter->next;
+		free(iter);
+		iter = next;
+	}
+	exit(0);
+}
+
+void	check_cmds(t_cmds *cmds)
+{
+	t_cmds	*iter;
+
+	iter = cmds;
+	while (iter)
+	{
+		if (!is_cmd(iter->cmd))
+			return (cmd_error(cmds));
+		if (!is_flag(iter))
+			return (flag_error(cmds));
+		iter = iter->next;
+	}
 }
 
 void	check_quotation(char **line)
@@ -319,6 +429,7 @@ int	main(void)
 			printf("erro\n");
 			return (0);
 		}
+		check_cmds(cmds);
 		executor(cmds);
 		free(line);
 	}
