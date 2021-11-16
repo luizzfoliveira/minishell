@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/03 18:55:41 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/14 15:48:59 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 # define HISTFILESIZE
 # define ECHO 0
@@ -47,8 +49,17 @@ typedef struct cmds
 	struct cmds	*next;
 }	t_cmds;
 
+typedef struct variables
+{
+	char				*var;
+	char				*value;
+	struct variables	*next;
+}	t_vars;
+
 void	*ft_calloc(size_t nmemb, size_t size);
 void	recieve_signals(void);
+char	*ft_strjoin(char const *s1, char const *s2);
+char	*get_prompt();
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 
 #endif

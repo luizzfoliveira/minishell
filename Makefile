@@ -1,4 +1,5 @@
 SRCS		= ft_calloc.c\
+			  ft_strjoin.c\
 			  ft_strncmp.c\
 			  gnl/get_next_line.c\
 			  gnl/get_next_line_utils.c\
