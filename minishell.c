@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/14 15:49:27 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/16 16:41:32 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -564,6 +564,24 @@ char	*get_prompt()
 	return (prompt);
 }
 
+char	*find_vars(char *line, char c)
+{
+	int	quote;
+	int	i;
+
+	quote = 0;
+	i = -1;
+	while (line[++i] != 0)
+	{
+		if (!quote && line[i] == '$')
+			return (&line[i]);
+		else if (line[i] == '\'' && !quote)
+			quote = 1;
+		else if (line[i] == '\'' && quote)
+			quote = 0;
+	}
+}
+
 void	substitute_variables(char **line, t_vars *variables)
 {
 	t_vars	*iter;
@@ -572,12 +590,12 @@ void	substitute_variables(char **line, t_vars *variables)
 	char	*temp;
 	int		size;
 
-	vars = ft_strchr(*line, '$');
+	vars = find_vars(*line, '$');
 	while (vars)
 	{
 		vars++;
 		size = 0;
-		while (vars[size] != ' ' && vars[size] != ';' && vars[size] != '|' && vars[size] != 0)
+		while (vars[size] != ' ' && vars[size] != ';' && vars[size] != '|' && vars[size] != 0 && vars[size] != '"')
 			size++;
 		value = ft_strdup(get_variable(vars, size, variables));
 		printf("value = %s\n", value);
@@ -588,7 +606,7 @@ void	substitute_variables(char **line, t_vars *variables)
 		temp = ft_concat(&temp, vars + size);
 		free(*line);
 		*line = temp;
-		vars = ft_strchr(*line, '$');
+		vars = find_vars(*line, '$');
 	}
 }
 
