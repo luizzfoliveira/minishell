@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/14 15:48:59 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/19 20:00:32 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ typedef struct variables
 }	t_vars;
 
 void	*ft_calloc(size_t nmemb, size_t size);
+void	ft_echo(t_cmds *iter);
 void	recieve_signals(void);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	*get_prompt();

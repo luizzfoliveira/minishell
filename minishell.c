@@ -6,11 +6,23 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/16 16:41:32 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/19 20:11:51 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void	exec_env(t_vars *variables)
+{
+	t_vars	*iter;
+
+	printf("%s=%s\n", variables->var, variables->value);
+	/* iter = variables;
+	while (iter)
+	{
+		printf("%s\n")
+	} */
+}
 
 void	lstadd_back(t_vars **lst, t_vars *new)
 {
@@ -82,7 +94,7 @@ int	str_to_cmd(char *str, int *j)
 	return (cmd);
 }
 
-void	executor(t_cmds *cmds)
+void	executor(t_cmds *cmds, t_vars *variables)
 {
 	t_cmds	*iter;
 	t_cmds	*next;
@@ -91,7 +103,11 @@ void	executor(t_cmds *cmds)
 	iter = cmds;
 	while (iter != 0)
 	{
-		printf("cmd = %s\n", iter->cmd);
+		/* printf("cmd = %s\n", iter->cmd); */
+		if (!ft_strncmp(iter->cmd, "env", 3))
+			exec_env(variables);
+		else if (!ft_strncmp(iter->cmd, "echo", ft_strlen(iter->cmd)))
+			ft_echo(iter);
 		if (iter->flags)
 		{
 			printf("flags = %s\n", iter->flags);
@@ -240,6 +256,7 @@ t_args	*get_args(char *line, int *count)
 			j++;
 		}
 		iter->arg = ft_strndup(line + i, j);
+		iter->next = 0;
 		if (quote)
 			remove_char(iter->arg, quote);
 		while (line[i + j] == ' ')
@@ -629,7 +646,7 @@ int	read_lines(char **line, t_vars **variables)
 			return (0);
 		}
 		if (!check_cmds(cmds))
-			executor(cmds);
+			executor(cmds, *variables);
 		sol = ft_strchr(sol, ';');
 		if (sol)
 			sol++;
@@ -642,7 +659,7 @@ int	read_lines(char **line, t_vars **variables)
  * primeiro, lê do shell, passa pelo parser para gerar a lista
  * de comandos, checa se os comandos são aceitos e executa os
  * comandos */
-int	main(void)
+int	main(int argv, char *argc[], char **argenv)
 {
 	t_vars	*variables;
 	t_cmds	*cmds;

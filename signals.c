@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:47:06 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/14 12:57:27 by felipe           ###   ########.fr       */
+/*   Updated: 2021/11/22 22:55:57 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,14 @@ void	recieve_signals(void)
 		write(1, "Erro\n", 5);
 		return ;
 	}
-	sigaction(SIGINT, &int_signal, NULL);
-	/* if (sigaction(SIGINT, &int_signal, NULL) == 0)
-		printf("oi\n"); */
+	if (sigaction(SIGINT, &int_signal, NULL) == -1)
+	{
+		write(1, "Erro\n", 5);
+		return ;
+	}
+	if (sigaction(SIGQUIT, &quit_signal, NULL) == -1)
+	{
+		write(1, "Erro\n", 5);
+		return ;
+	}
 }
