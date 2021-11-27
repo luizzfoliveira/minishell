@@ -1,11 +1,17 @@
-SRCS		= ft_calloc.c\
-			  builtin_echo.c\
-			  ft_strjoin.c\
-			  ft_strncmp.c\
-			  gnl/get_next_line.c\
-			  gnl/get_next_line_utils.c\
-			  minishell.c\
-			  signals.c
+SRCS		=	builtin_echo.c\
+				checkers.c\
+				env.c\
+				execute_file.c\
+				executor.c\
+				ft_split.c\
+				minishell.c\
+				parser.c\
+				signals.c\
+				substitute_vars.c\
+				utils.c\
+				gnl/get_next_line.c\
+				gnl/get_next_line_utils.c
+
 
 OBJS		= $(SRCS:.c=.o)
 
