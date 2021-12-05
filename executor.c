@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:19:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 19:15:25 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/04 20:39:07 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ void	executor(t_cmds *cmds, t_vars *variables, char **envp)
 	t_cmds	*iter;
 	t_cmds	*next;
 	t_args	*next_arg;
+	char	*line;
 
 	next_arg = cmds->args;
 	iter = cmds;
@@ -35,6 +36,8 @@ void	executor(t_cmds *cmds, t_vars *variables, char **envp)
 			exec_env(envp);
 		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "echo", ft_strlen(iter->cmd)))
 			ft_echo(iter);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "exit", ft_strlen(iter->cmd)))
+			builtin_exit(iter, variables);
 		iter = iter->next;
 	}
 }

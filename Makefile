@@ -1,8 +1,10 @@
 SRCS		=	builtin_echo.c\
+				builtin_exit.c\
 				checkers.c\
 				env.c\
 				execute_file.c\
 				executor.c\
+				ft_atoi.c\
 				ft_split.c\
 				minishell.c\
 				parser.c\

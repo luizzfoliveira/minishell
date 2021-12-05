@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 20:21:15 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/04 19:49:33 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,6 @@ int	main(int argc, char *argv[], char **envp)
 
 	initialize_vars(&variables, envp);
 	recieve_signals();
-	// start prompt
 	while (1)
 	{
 		prompt = get_prompt();

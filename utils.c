@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/05 21:17:18 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 18:06:26 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/04 20:10:58 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,4 +137,29 @@ char	*ft_strnstr(const char	*big, const char *little, size_t len)
 		i++;
 	}
 	return (0);
+}
+
+char	*cmds_to_string(t_cmds *cmds)
+{
+	t_args	*iter;
+	char	*line;
+	char	*temp;
+
+	line = ft_strdup(cmds->cmd);
+	if (cmds->flags)
+	{
+		temp = ft_strjoin(line, " ");
+		free(line);
+		line = ft_strjoin(temp, cmds->flags);
+		free(temp);
+	}
+	iter = cmds->args;
+	while (iter && iter->arg != 0)
+	{
+		temp = ft_strjoin(line, " ");
+		free(line);
+		line = ft_strjoin(temp, iter->arg);
+		free(temp);
+	}
+	return (line);
 }

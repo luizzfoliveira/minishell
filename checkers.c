@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:11:27 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 20:15:54 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/04 20:57:40 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ int	is_cmd(char *cmd)
 			return (1);
 		else if (!ft_strncmp(cmd, "env", len))
 			return (1);
+		else if (!ft_strncmp(cmd, "exit", len))
+			return (1);
 		return (0);
 	}
 	return (1);
@@ -76,7 +78,7 @@ int	flag_error(t_cmds *cmds)
 		free(iter);
 		iter = next;
 	}
-	return (1);
+	return (2);
 }
 
 /* caso o comando não exista, essa função é chamada para
@@ -103,7 +105,7 @@ int	cmd_error(t_cmds *cmds)
 		free(iter);
 		iter = next;
 	}
-	return (1);
+	return (127);
 }
 
 /* funcao para verificar se os comandos e as flags existem */

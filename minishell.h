@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 20:15:28 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/04 20:45:19 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,11 +71,14 @@ char	**ft_split(char const *s, char c);
 char	*find_path(char *cmd, char **envp);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	*ft_strndup(const char *s, int len);
+char	*cmds_to_string(t_cmds *cmds);
 char	*get_prompt();
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
+int		builtin_exit(t_cmds *cmds, t_vars *variables);
 int		check_cmds(t_cmds *cmds, char **envp);
 int		check_unspecified_chars(char *line);
 int		execute(t_cmds *cmds, char **envp);
 int		check_quotation(char *line);
+int		ft_atoi(const char *str);
 
 #endif
