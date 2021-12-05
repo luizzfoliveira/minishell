@@ -1,5 +1,7 @@
 SRCS		=	builtin_echo.c\
 				builtin_exit.c\
+				builtin_export.c\
+				builtin_unset.c\
 				checkers.c\
 				env.c\
 				execute_file.c\

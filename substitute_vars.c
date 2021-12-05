@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:14:28 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 18:17:16 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/05 19:12:31 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ char	*find_vars(char *line, char c)
 		else if (line[i] == '\'' && quote)
 			quote = 0;
 	}
+	return (0);
 }
 
 void	substitute_variables(char **line, t_vars *variables)

@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/04 19:49:33 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/05 20:01:51 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ char	*get_prompt()
 
 /* funcao para verificar a presenca de ';' e iterar o parser
  * considerando que cada ';' é um fim de linha */
-int	read_lines(char **line, t_vars **variables, char **envp)
+int	read_lines(char **line, t_vars **variables, char ***envp)
 {
 	t_cmds	*cmds;
 	int		i;
@@ -66,7 +66,7 @@ int	read_lines(char **line, t_vars **variables, char **envp)
 		printf("erro\n");
 		return (0);
 	}
-	if (!check_cmds(cmds, envp))
+	if (!check_cmds(cmds, *envp))
 		executor(cmds, *variables, envp);
 	free(*line);
 	return (1);
@@ -114,7 +114,7 @@ int	main(int argc, char *argv[], char **envp)
 			}
 			else if (check_unspecified_chars(line))
 				free(line);
-			else if (!read_lines(&line, &variables, envp))
+			else if (!read_lines(&line, &variables, &envp))
 				return (0);
 		}
 		else
