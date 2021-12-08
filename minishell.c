@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/07 20:23:13 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/07 21:26:17 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,9 @@ int	get_end_here(char **line, int pos)
 		size++;
 	end = ft_strndup((*line) + i, size);
 	size = i + size;
-	while (pos - 1 < size)
+	while (pos - 2 < size)
 	{
-		(*line)[pos - 1] = ' ';
+		(*line)[pos - 2] = ' ';
 		pos++;
 	}
 	text = 0;
@@ -118,7 +118,6 @@ int	get_input(char **line, int pos)
 		(*line)[pos - 1] = ' ';
 		pos++;
 	}
-	printf("line = %s\n", *line);
 	free(file_name);
 	return (in_fd);
 }
@@ -135,7 +134,7 @@ int	get_infile(char **line)
 	{
 		if (redirect[1] == '<' && redirect[2] == '<')
 		{
-			printf("syntax error near unexpected token '<<<'\n");
+			printf("syntax error near unexpected token '<'\n");
 			return (-1);
 		}
 		else if (redirect[1] == '<' && redirect[2] != '<')
@@ -155,29 +154,112 @@ int	get_infile(char **line)
 	return (infile);
 }
 
+int	truncate_output(char **line, int pos)
+{
+	char	*file_name;
+	int		size;
+	int		i;
+	int		out_fd;
+
+	i = pos;
+	while ((*line)[i] == ' ')
+		i++;
+	size = 0;
+	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
+		size++;
+	file_name = ft_strndup((*line) + i, size);
+	out_fd = open(file_name, O_WRONLY | O_CREAT | O_TRUNC);
+	size = i + size;
+	while (pos - 1 < size)
+	{
+		(*line)[pos - 1] = ' ';
+		pos++;
+	}
+	free(file_name);
+	return (out_fd);
+}
+
+int	append_output(char **line, int pos)
+{
+	char	*file_name;
+	int		size;
+	int		i;
+	int		out_fd;
+
+	i = pos;
+	while ((*line)[i] == ' ')
+		i++;
+	size = 0;
+	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
+		size++;
+	file_name = ft_strndup((*line) + i, size);
+	out_fd = open(file_name, O_WRONLY | O_CREAT | O_APPEND);
+	size = i + size;
+	while (pos - 2 < size)
+	{
+		(*line)[pos - 2] = ' ';
+		pos++;
+	}
+	free(file_name);
+	return (out_fd);
+}
+
+int	get_outfile(char **line)
+{
+	char	*redirect;
+	char	*last;
+	int		outfile;
+
+	outfile = 0;
+	redirect = ft_strchr(*line, '>');
+	while (redirect)
+	{
+		if (redirect[1] == '>' && redirect[2] == '>')
+		{
+			printf("syntax error near unexpected token '>'\n");
+			return (-1);
+		}
+		else if (redirect[1] == '>' && redirect[2] != '<')
+		{
+			redirect++;
+			outfile = 2;
+		}
+		else if (redirect[1] != '<')
+			outfile = 1;
+		last = redirect;
+		redirect = ft_strchr(redirect + 1, '<');
+	}
+	if (outfile == 1)
+		outfile = truncate_output(line, last - *line + 1);
+	else if (outfile == 2)
+		outfile = append_output(line, last - *line + 1);
+	return (outfile);
+}
+
 /* funcao para verificar a presenca de ';' e iterar o parser
  * considerando que cada ';' é um fim de linha */
 int	read_lines(char **line, t_vars **variables, char ***envp)
 {
-	t_cmds	*cmds;
+	t_data	data;
 	int		i;
 	int		infile;
 
 	substitute_variables(line, *variables);
-	infile = get_infile(line);
-	if (infile < 0)
+	data.fd_in = get_infile(line);
+	if (data.fd_in < 0)
 	{
 		free(*line);
 		return (1);
 	}
-	cmds = parser(*line, variables);
-	if (!cmds)
+	data.fd_out = get_outfile(line);
+	data.cmds = parser(*line, variables);
+	if (!data.cmds)
 	{
 		printf("erro\n");
 		return (0);
 	}
-	if (!check_cmds(cmds, *envp))
-		executor(cmds, *variables, envp);
+	if (!check_cmds(data.cmds, *envp))
+		executor(data.cmds, *variables, envp);
 	free(*line);
 	return (1);
 }

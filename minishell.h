@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/07 20:29:50 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/07 21:08:06 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,13 @@ typedef struct cmds
 	t_args		*out;
 	struct cmds	*next;
 }	t_cmds;
+
+typedef struct data
+{
+	t_cmds	*cmds;
+	int		fd_in;
+	int		fd_out;
+}	t_data;
 
 typedef struct variables
 {
