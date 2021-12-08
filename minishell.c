@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/05 20:01:51 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/07 20:23:13 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,14 +52,124 @@ char	*get_prompt()
 	return (prompt);
 }
 
+int	get_end_here(char **line, int pos)
+{
+	char	*end;
+	char	*here;
+	char	*text;
+	int		fd[2];
+	int		size;
+	int		i;
+
+	i = pos;
+	while ((*line)[i] == ' ')
+		i++;
+	size = 0;
+	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
+		size++;
+	end = ft_strndup((*line) + i, size);
+	size = i + size;
+	while (pos - 1 < size)
+	{
+		(*line)[pos - 1] = ' ';
+		pos++;
+	}
+	text = 0;
+	while (1)
+	{
+		here = readline("> ");
+		if (!ft_strncmp(here, end, ft_strlen(here)))
+			break ;
+		here = ft_concat(&here, "\n");
+		if (!text)
+			text = here;
+		else
+		{
+			text = ft_concat(&text, here);
+			free(here);
+		}
+	}
+	free(here);
+	pipe(fd);
+	write(fd[1], text, ft_strlen(text));
+	free(text);
+	close(fd[1]);
+	return (fd[0]);
+}
+
+int	get_input(char **line, int pos)
+{
+	char	*file_name;
+	int		size;
+	int		i;
+	int		in_fd;
+
+	i = pos;
+	while ((*line)[i] == ' ')
+		i++;
+	size = 0;
+	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
+		size++;
+	file_name = ft_strndup((*line) + i, size);
+	in_fd = open(file_name, O_RDONLY);
+	size = i + size;
+	while (pos - 1 < size)
+	{
+		(*line)[pos - 1] = ' ';
+		pos++;
+	}
+	printf("line = %s\n", *line);
+	free(file_name);
+	return (in_fd);
+}
+
+int	get_infile(char **line)
+{
+	char	*redirect;
+	char	*last;
+	int		infile;
+
+	infile = 0;
+	redirect = ft_strchr(*line, '<');
+	while (redirect)
+	{
+		if (redirect[1] == '<' && redirect[2] == '<')
+		{
+			printf("syntax error near unexpected token '<<<'\n");
+			return (-1);
+		}
+		else if (redirect[1] == '<' && redirect[2] != '<')
+		{
+			redirect++;
+			infile = 2;
+		}
+		else if (redirect[1] != '<')
+			infile = 1;
+		last = redirect;
+		redirect = ft_strchr(redirect + 1, '<');
+	}
+	if (infile == 1)
+		infile = get_input(line, last - *line + 1);
+	else if (infile == 2)
+		infile = get_end_here(line, last - *line + 1);
+	return (infile);
+}
+
 /* funcao para verificar a presenca de ';' e iterar o parser
  * considerando que cada ';' é um fim de linha */
 int	read_lines(char **line, t_vars **variables, char ***envp)
 {
 	t_cmds	*cmds;
 	int		i;
+	int		infile;
 
 	substitute_variables(line, *variables);
+	infile = get_infile(line);
+	if (infile < 0)
+	{
+		free(*line);
+		return (1);
+	}
 	cmds = parser(*line, variables);
 	if (!cmds)
 	{

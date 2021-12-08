@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:18:59 by felipe            #+#    #+#             */
-/*   Updated: 2021/11/27 19:51:23 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/07 18:52:53 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,19 +52,67 @@ char	*find_path(char *cmd, char **envp)
 	return (0);
 }
 
+void	error(void)
+{
+	perror("\033[31mError");
+	exit(EXIT_FAILURE);
+}
+
+int	open_file(char *argv, int i)
+{
+	int	file;
+
+	file = 0;
+	if (i == 0)
+		file = open(argv, O_WRONLY | O_CREAT | O_APPEND, 0777);
+	else if (i == 1)
+		file = open(argv, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	else if (i == 2)
+		file = open(argv, O_RDONLY, 0777);
+	if (file == -1)
+		error();
+	return (file);
+}
+
 void	run_execve(char *file_path, char **argv, char **envp)
 {
-	pid_t	child;
-	int		status;
+	pid_t	pid;
+	int		fd[2];
+	int 	red;
 
-	child = fork();
-	if(child == 0)
+	int	out; 
+	out = 10;
+
+	if (pipe(fd) == -1)
+		error();
+	pid = fork();
+	if (pid == -1)
+		error();
+	if(pid == 0)
 	{
+		if (out == 0)
+			close(fd[1]);
+		else if (out == 10)
+			dup2(fd[1], STDOUT_FILENO); //redirecionar para um pipe
+		else if (out == 20)
+		{
+			red = open_file("outfile", 0);
+			dup2(red, STDOUT_FILENO);
+		}	
+		else if (out == 21)
+		{
+			red = open_file("outfile", 1);
+			dup2(red, STDOUT_FILENO);
+		}
+		close(fd[0]);
 		execve(file_path, argv, envp);
 	}
 	else
 	{
-		waitpid(child, &status, 0);
+		if (out == 0)
+			close(fd[0]);
+		close(fd[1]);
+		waitpid(pid, NULL, 0);
 	}
 }
 
