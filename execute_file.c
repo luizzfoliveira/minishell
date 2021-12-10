@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:18:59 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/07 18:52:53 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/09 19:10:35 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,58 +76,35 @@ int	open_file(char *argv, int i)
 
 void	run_execve(char *file_path, char **argv, char **envp)
 {
-	pid_t	pid;
-	int		fd[2];
-	int 	red;
+	pid_t	child;
+	int		status;
 
-	int	out; 
-	out = 10;
-
-	if (pipe(fd) == -1)
-		error();
-	pid = fork();
-	if (pid == -1)
-		error();
-	if(pid == 0)
+	child = fork();
+	if(child == 0)
 	{
-		if (out == 0)
-			close(fd[1]);
-		else if (out == 10)
-			dup2(fd[1], STDOUT_FILENO); //redirecionar para um pipe
-		else if (out == 20)
-		{
-			red = open_file("outfile", 0);
-			dup2(red, STDOUT_FILENO);
-		}	
-		else if (out == 21)
-		{
-			red = open_file("outfile", 1);
-			dup2(red, STDOUT_FILENO);
-		}
-		close(fd[0]);
 		execve(file_path, argv, envp);
 	}
 	else
 	{
-		if (out == 0)
-			close(fd[0]);
-		close(fd[1]);
-		waitpid(pid, NULL, 0);
+		waitpid(child, &status, 0);
 	}
 }
 
-/* Function that take the command and send it to find_path
- before executing it. */
-int	execute(t_cmds *cmds, char **envp)
+char	**cmds_to_argv(t_cmds *cmds)
 {
-	t_vars	*v_iter;
 	t_args	*iter;
 	char	**argv;
+	int		size;
 	int		i;
 
-	argv = ft_calloc(len_list(cmds->args) + 1, sizeof (char *));
+	size = len_list(cmds->args);
+	if (cmds->flags)
+		size++;
+	argv = ft_calloc(size + 1, sizeof (char *));
 	argv[0] = ft_strdup(cmds->cmd);
 	i = 1;
+	if (cmds->flags)
+		argv[i++] = ft_strdup(cmds->flags);
 	iter = cmds->args;
 	while (iter)
 	{
@@ -135,15 +112,27 @@ int	execute(t_cmds *cmds, char **envp)
 		i++;
 		iter = iter->next;
 	}
+	return (argv);
+}
+
+/* Function that take the command and send it to find_path
+ before executing it. */
+int	execute(t_cmds *cmds, char **envp)
+{
+	t_vars	*v_iter;
+	char	**argv;
+	int		i;
+
+	argv = cmds_to_argv(cmds);
 	if (access(cmds->cmd, X_OK) == 0)
-		run_execve(cmds->cmd, argv, envp);
+		execve(cmds->cmd, argv, envp);
 	else if (find_path(cmds->cmd, envp))
-		run_execve(find_path(cmds->cmd, envp), argv, envp);
+		execve(find_path(cmds->cmd, envp), argv, envp);
 	else if (access(cmds->cmd, F_OK) == -1)
 		printf("%s: No such file or directory\n", cmds->cmd);
 	else
 		printf("%s: Permission denied\n", cmds->cmd);
 	return (0);
 	/* if (execve(find_path(cmd[0], envp), cmd, envp) == -1) */
-		/*retornar um erro*/;
+		/*retornar um erro*/
 }

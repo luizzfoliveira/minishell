@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/07 21:26:17 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/09 19:51:05 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,7 @@ int	get_input(char **line, int pos)
 	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
 		size++;
 	file_name = ft_strndup((*line) + i, size);
-	in_fd = open(file_name, O_RDONLY);
+	in_fd = open(file_name, O_RDONLY, 0777);
 	size = i + size;
 	while (pos - 1 < size)
 	{
@@ -168,7 +168,7 @@ int	truncate_output(char **line, int pos)
 	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
 		size++;
 	file_name = ft_strndup((*line) + i, size);
-	out_fd = open(file_name, O_WRONLY | O_CREAT | O_TRUNC);
+	out_fd = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, 0777);
 	size = i + size;
 	while (pos - 1 < size)
 	{
@@ -193,7 +193,7 @@ int	append_output(char **line, int pos)
 	while ((*line)[i + size] != 0 && (*line)[i + size] != ' ' && (*line)[i + size] != '|')
 		size++;
 	file_name = ft_strndup((*line) + i, size);
-	out_fd = open(file_name, O_WRONLY | O_CREAT | O_APPEND);
+	out_fd = open(file_name, O_WRONLY | O_CREAT | O_APPEND, 0777);
 	size = i + size;
 	while (pos - 2 < size)
 	{
@@ -210,7 +210,7 @@ int	get_outfile(char **line)
 	char	*last;
 	int		outfile;
 
-	outfile = 0;
+	outfile = STDOUT_FILENO;
 	redirect = ft_strchr(*line, '>');
 	while (redirect)
 	{
@@ -222,16 +222,16 @@ int	get_outfile(char **line)
 		else if (redirect[1] == '>' && redirect[2] != '<')
 		{
 			redirect++;
-			outfile = 2;
+			outfile += 2;
 		}
 		else if (redirect[1] != '<')
-			outfile = 1;
+			outfile += 1;
 		last = redirect;
 		redirect = ft_strchr(redirect + 1, '<');
 	}
-	if (outfile == 1)
+	if (outfile == 2)
 		outfile = truncate_output(line, last - *line + 1);
-	else if (outfile == 2)
+	else if (outfile == 3)
 		outfile = append_output(line, last - *line + 1);
 	return (outfile);
 }
@@ -245,21 +245,24 @@ int	read_lines(char **line, t_vars **variables, char ***envp)
 	int		infile;
 
 	substitute_variables(line, *variables);
-	data.fd_in = get_infile(line);
-	if (data.fd_in < 0)
+	data.heredoc = 0;
+	data.file_in = get_infile(line);
+	if (data.file_in < 0)
 	{
 		free(*line);
 		return (1);
 	}
-	data.fd_out = get_outfile(line);
+	data.file_out = get_outfile(line);
 	data.cmds = parser(*line, variables);
 	if (!data.cmds)
 	{
 		printf("erro\n");
 		return (0);
 	}
+	printf("file in = %d\n", data.file_in);
+	printf("file out = %d\n", data.file_out);
 	if (!check_cmds(data.cmds, *envp))
-		executor(data.cmds, *variables, envp);
+		executor(&data, *variables, envp);
 	free(*line);
 	return (1);
 }

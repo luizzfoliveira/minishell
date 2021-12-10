@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/07 21:08:06 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/09 18:51:26 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,11 @@ typedef struct cmds
 typedef struct data
 {
 	t_cmds	*cmds;
-	int		fd_in;
-	int		fd_out;
+	int		file_in;
+	int		file_out;
+	pid_t	pid;
+	int		fd[2];
+	int		heredoc;
 }	t_data;
 
 typedef struct variables
@@ -66,7 +69,7 @@ typedef struct variables
 
 t_cmds	*parser(char *line, t_vars **variables);
 void	save_env_var(char *line, int *count, t_vars **variables);
-void	executor(t_cmds *cmds, t_vars *variables, char ***envp);
+void	executor(t_data *data, t_vars *variables, char ***envp);
 void	substitute_variables(char **line, t_vars *variables);
 void	lstadd_back(t_vars **lst, t_vars *new);
 void	*ft_calloc(size_t nmemb, size_t size);
@@ -90,5 +93,8 @@ int		check_unspecified_chars(char *line);
 int		execute(t_cmds *cmds, char **envp);
 int		check_quotation(char *line);
 int		ft_atoi(const char *str);
+
+
+void	exec(t_data data, char **envp);
 
 #endif
