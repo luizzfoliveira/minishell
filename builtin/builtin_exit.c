@@ -6,11 +6,11 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/04 20:13:44 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/04 21:04:31 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 12:27:59 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 void	free_args(t_args *args)
 {

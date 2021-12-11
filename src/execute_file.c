@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   execute_file.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lbricio- <lbricio-@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:18:59 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/09 19:10:35 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/10 16:02:12 by lbricio-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 int	len_list(t_args *list)
 {
@@ -74,45 +74,51 @@ int	open_file(char *argv, int i)
 	return (file);
 }
 
-void	run_execve(char *file_path, char **argv, char **envp)
+// por algum motivo fica como core_dumped se eu uso cmds->out
+void	run_execve(char *file_path, char **argv, char **envp, int out, t_cmds *cmds)
 {
-	pid_t	child;
+	/*printf("out inside execve: %i\n", out);*/
+	pid_t	pid;
+	int		fd[2];
 	int		status;
+	pipe(fd);
 
-	child = fork();
-	if(child == 0)
+	pid = fork();
+	if(pid == 0)
 	{
+		printf("pipe[0]:%i pipe[1]:%i\nstd_fd[0]:%i std_fd[1]:%i\n", fd[0], fd[1], g_reset_fd[0], g_reset_fd[1]);
+		printf("file_path: %s\nargv: %s\n",file_path, *argv);
+		printf("output:\n");
+		close(fd[0]);
+		if (out == 0)
+			reset_output();
+		else if (out == 10)
+			dup2(fd[1], STDOUT_FILENO);
+		else
+			dup2(out, STDOUT_FILENO);
 		execve(file_path, argv, envp);
 	}
 	else
 	{
-		waitpid(child, &status, 0);
+		close(fd[1]);
+		if (out == 10)
+		{
+			dup2(fd[0], STDIN_FILENO);
+		}
+		waitpid(pid, NULL, 0);
+		/*if (g_reset_fd[2] != 130 && g_reset_fd[2] != 131)
+		g_reset_fd[2] = WEXITSTATUS(status);*/
+		close(fd[0]);
+		if (out != 10 && out != 0)
+		{
+			reset_input();
+			reset_output();
+		}
+		if (out == 0)
+			reset_input();
+		printf("exit code:%i\n",g_reset_fd[2]);
+		printf("---------------------\n");
 	}
-}
-
-char	**cmds_to_argv(t_cmds *cmds)
-{
-	t_args	*iter;
-	char	**argv;
-	int		size;
-	int		i;
-
-	size = len_list(cmds->args);
-	if (cmds->flags)
-		size++;
-	argv = ft_calloc(size + 1, sizeof (char *));
-	argv[0] = ft_strdup(cmds->cmd);
-	i = 1;
-	if (cmds->flags)
-		argv[i++] = ft_strdup(cmds->flags);
-	iter = cmds->args;
-	while (iter)
-	{
-		argv[i] = iter->arg;
-		i++;
-		iter = iter->next;
-	}
-	return (argv);
 }
 
 /* Function that take the command and send it to find_path
@@ -120,19 +126,29 @@ char	**cmds_to_argv(t_cmds *cmds)
 int	execute(t_cmds *cmds, char **envp)
 {
 	t_vars	*v_iter;
+	t_args	*iter;
 	char	**argv;
 	int		i;
 
-	argv = cmds_to_argv(cmds);
+	argv = ft_calloc(len_list(cmds->args) + 1, sizeof (char *));
+	argv[0] = ft_strdup(cmds->cmd);
+	i = 1;
+	iter = cmds->args;
+	while (iter)
+	{
+		argv[i] = iter->arg;
+		i++;
+		iter = iter->next;
+	}
 	if (access(cmds->cmd, X_OK) == 0)
-		execve(cmds->cmd, argv, envp);
+		run_execve(cmds->cmd, argv, envp, cmds->fd_out, cmds);
 	else if (find_path(cmds->cmd, envp))
-		execve(find_path(cmds->cmd, envp), argv, envp);
+		run_execve(find_path(cmds->cmd, envp), argv, envp, cmds->fd_out, cmds);
 	else if (access(cmds->cmd, F_OK) == -1)
 		printf("%s: No such file or directory\n", cmds->cmd);
 	else
 		printf("%s: Permission denied\n", cmds->cmd);
 	return (0);
 	/* if (execve(find_path(cmd[0], envp), cmd, envp) == -1) */
-		/*retornar um erro*/
+		/*retornar um erro*/;
 }

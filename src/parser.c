@@ -6,11 +6,11 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:09:19 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/04 20:09:50 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 14:23:47 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 /* funcao para inicializar todos as variaveis da struct t_cmds */
 void	init_cmds(t_cmds *cmds)
@@ -18,7 +18,7 @@ void	init_cmds(t_cmds *cmds)
 	cmds->cmd = 0;
 	cmds->flags = 0;
 	cmds->args = 0;
-	cmds->out = 0;
+	cmds->fd_out = 0;
 	cmds->next = 0;
 }
 
@@ -59,12 +59,22 @@ char	get_quote(char *line)
 char	*get_cmd(char *line, int *count, t_vars *variables)
 {
 	char	*cmd;
+	char	quote;
 	int		i;
 
+	quote = 0;
 	i = 0;
-	while (line[i] != 0 && line[i] != ' ' && line[i] != '|' && line[i] != ';')
+	while ((line[i] != 0 && line[i] != ' ' && line[i] != '|' && line[i] != ';') || quote)
+	{
+		if ((line[i] == '\'' || line[i] == '"') && !quote)
+			quote = line[i];
+		else if (line[i] == quote)
+			quote = 0;
 		i++;
+	}
 	cmd = ft_strndup(line, i);
+	quote = get_quote(cmd);
+	remove_char(cmd, quote);
 	(*count) += i;
 	return (cmd);
 }
@@ -73,14 +83,24 @@ char	*get_cmd(char *line, int *count, t_vars *variables)
 char	*get_flags(char *line, int *count)
 {
 	char	*flags;
+	char	quote;
 	int		i;
 
-	if (line[0] == '-')
+	if (line[0] == '-' || ((line[0] == '"' || line[0] == '\'') && line[1] == '-'))
 	{
+		quote = 0;
 		i = 0;
 		while (line[i] != 0 && line[i] != ' ' && line[i] != '|' && line[i] != ';')
+		{
+			if ((line[i] == '\'' || line[i] == '"') && !quote)
+				quote = line[i];
+			else if (line[i] == quote)
+				quote = 0;
 			i++;
+		}
 		flags = ft_strndup(line, i);
+		quote = get_quote(flags);
+		remove_char(flags, quote);
 		(*count) += i;
 		return (flags);
 	}
@@ -101,22 +121,22 @@ t_args	*get_args(char *line, int *count)
 	args->arg = 0;
 	args->next = 0;
 	iter = args;
-	quote_count = 0;
 	i = 0;
-	while (line[i] != 0 && line[i] != '|' && line[i] != ';')
+	while (line[i] != 0 && line[i] != '|' && line[i] != ';' && line[i] != '<' && line[i] != '>')
 	{
-		quote = get_quote(line + i);
+		quote = 0;
 		j = 0;
-		while (line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';')
+		while ((line[i + j] != 0 && line[i + j] != '|' && line[i + j] != ';') || quote)
 		{
-			if (line[i + j] == quote)
-				quote_count++;
-			if ((quote_count == 2 || !quote) && line[i + j] == ' ')
-				break ;
+			if ((line[i + j] == '\'' || line[i + j] == '"') && !quote)
+				quote = line[i + j];
+			else if (line[i + j] == quote)
+				quote = 0;
 			j++;
 		}
 		iter->arg = ft_strndup(line + i, j);
 		iter->next = 0;
+		quote = get_quote(iter->arg);
 		if (quote)
 			remove_char(iter->arg, quote);
 		while (line[i + j] == ' ')
@@ -208,12 +228,57 @@ void	save_env_var(char *line, int *count, t_vars **variables)
 	}
 }
 
+void		get_redirect(char *line, int *count, t_cmds *cmds)
+{
+	char 	*outfile;
+	int		i;
+	/*printf("dentro do get_redirect:%s\n",line);*/
+	if (line[0] == '|' && line[1] != '|')
+		cmds->fd_out = 10;
+	else if (line[0] == '|' && line[1] == '|')
+		cmds->fd_out = -1;
+	else if (line[0] == '>' && line[1] == '>' && line[2] == '>')
+		cmds->fd_out = -1;
+	else if (line[0] == '>' && line[1] == '>' && line[2] != '>')
+	{
+		i = 0;
+		while (line [i] == '>' || line[i] == ' ')
+			i++;
+		outfile = ft_strword(line + i);
+		/*printf("%s\n",outfile);*/
+		cmds->fd_out = open_file(outfile, 0);
+		while (line[i] >= 'a' && line[i] <= 'z' || line[i] >= 'A' && line[i] <= 'Z' ||  line[i] >= '0' && line[i] <= '9')
+			i++;
+		(*count) += i;
+	}
+	else if (line[0] == '>' && line[1] != '>' && line[2] != '>')
+	{
+		i = 0;
+		while (line [i] == '>' || line[i] == ' ')
+			i++;
+		outfile = ft_strword(line + i);
+		cmds->fd_out = open_file(outfile, 1);
+		printf("out: %s(%i)\n",outfile, cmds->fd_out);
+		while (line[i] >= 'a' && line[i] <= 'z' || line[i] >= 'A' && line[i] <= 'Z' ||  line[i] >= '0' && line[i] <= '9')
+			i++;
+		(*count) += i;
+	}
+	else
+		cmds->fd_out = 0;
+}
+
+int			sintax_check(char *line)
+{
+	if (line[0] == '|')
+		return (-1);
+}
+
 /* funçao que lê os caracteres da linha e cria a struct de comandos.
  * Esta funcao ignora os espaços em branco. Ela itera por todos os
  * caracteres da linha e retorna a primeira palavra encontrada como
  * sendo o comando, se a segunda palavra tiver um '-' retorna isso
  * como flag. Retorna o que sobrou como uma lista de argumentos */
-t_cmds	*parser(char *line, t_vars **variables)
+int		*parser(char *line, t_vars **variables, char ***envp)
 {
 	t_cmds	*cmds;
 	t_cmds	*iter;
@@ -225,21 +290,35 @@ t_cmds	*parser(char *line, t_vars **variables)
 	j = 0;
 	while (line[j] != 0 && line[j] != ';')
 	{
+		printf("---------------------\n");
+		printf("1:%s\n",line + j);
 		while (line[j] == ' ')
 			j++;
 		save_env_var(line + j, &j, variables);
 		while (line[j] == ' ')
 			j++;
+		/*sintax_check(line + j);*/
 		iter->cmd = get_cmd(line + j, &j, *variables);
+		printf("2:%s\n",line + j);
 		remove_char(iter->cmd, get_quote(iter->cmd));
+		printf("3:%s\n",line + j);
 		while (line[j] == ' ')
 			j++;
 		iter->flags = get_flags(line + j, &j);
+		printf("4:%s\n",line + j);
 		while (line[j] == ' ')
 			j++;
 		iter->args = get_args(line + j, &j);
+		printf("5:%s\n",line + j);
 		while (line[j] == ' ')
 			j++;
+		get_redirect(line + j, &j, iter);
+		printf("6:%s\n",line + j);
+		printf("redirector code: %i\n",iter->fd_out);
+		while (line[j] == ' ')
+			j++;
+		if (!check_cmds(iter, *envp))
+			executor(iter, variables, envp);
 		if (line[j] == '|' && line[j + 1] != '|')
 		{
 			iter->next = malloc(sizeof (t_cmds));
@@ -248,5 +327,5 @@ t_cmds	*parser(char *line, t_vars **variables)
 			j++;
 		}
 	}
-	return (cmds);
+	return (0);
 }

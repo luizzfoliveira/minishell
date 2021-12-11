@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lbricio- <lbricio-@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/05 21:17:18 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/07 19:55:21 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/10 01:50:35 by lbricio-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 void	lstadd_back(t_vars **lst, t_vars *new)
 {
@@ -48,6 +48,33 @@ char	*ft_strndup(const char *s, int len)
 	dup[i] = 0;
 	return (dup);
 }
+
+/* duplica uma string até o fim de uma palavra, s[0] deve ser um caractere*/
+char	*ft_strword(const char *s)
+{
+	char	*dup;
+	int		i;
+	int		u;
+
+	i = 0;
+	while (s[i] != 0)
+		while (s[i] >= 'a' && s[i] <= 'z' 
+		|| s[i] >= 'A' && s[i] <= 'Z' 
+		||  s[i] >= '0' && s[i] <= '9')
+			i++;
+	dup = malloc(i + 1);
+	if (!dup)
+		return (0);
+	i = 0;
+	while (s[i] != 0)
+	{
+		dup[i] = s[i];
+		i++;
+	}
+	dup[i] = 0;
+	return (dup);
+}
+
 
 void	*ft_calloc(size_t nmemb, size_t size)
 {

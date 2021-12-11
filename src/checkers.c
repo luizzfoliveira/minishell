@@ -6,11 +6,11 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:11:27 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/09 19:12:19 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 11:30:49 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 /* funcao para verificar se a flag passada é valida para o comando
  * passado */

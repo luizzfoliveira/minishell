@@ -1,20 +1,22 @@
-SRCS		=	builtin_echo.c\
-				builtin_exit.c\
-				builtin_export.c\
-				builtin_unset.c\
-				checkers.c\
-				env.c\
-				execute_file.c\
-				executor.c\
-				ft_atoi.c\
-				ft_split.c\
-				minishell.c\
-				parser.c\
-				signals.c\
-				substitute_vars.c\
-				utils.c\
+SRCS		=	src/checkers.c\
+				src/execute_file.c\
+				src/executor.c\
+				src/minishell.c\
+				src/parser.c\
+				src/signals.c\
+				src/substitute_vars.c\
+				builtin/builtin_echo.c\
+				builtin/builtin_exit.c\
+				builtin/builtin_env.c\
+				builtin/builtin_export.c\
+				builtin/builtin_unset.c\
 				gnl/get_next_line.c\
-				gnl/get_next_line_utils.c
+				gnl/get_next_line_utils.c\
+				utils/ft_atoi.c\
+				utils/ft_itoa.c\
+				utils/ft_split.c\
+				utils/fd_save.c\
+				utils/utils.c
 
 
 OBJS		= $(SRCS:.c=.o)
