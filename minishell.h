@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 22:30:13 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 22:43:29 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 # define MINISHELL_H
 
 # include <fcntl.h>
-# include "gnl/get_next_line.h"
 # include <readline/readline.h>
 # include <readline/history.h>
 # include <signal.h>
