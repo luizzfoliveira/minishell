@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 13:18:18 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 22:30:13 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,11 +85,13 @@ int		builtin_exit(t_cmds *cmds, t_vars *variables);
 int		check_cmds(t_cmds *cmds, char **envp);
 int		check_unspecified_chars(char *line);
 int		execute(t_cmds *cmds, char **envp);
+int		open_file(char *argv, int i);
 int		check_quotation(char *line);
 int		ft_atoi(const char *str);
-int		open_file(char *argv, int i);
+int		builtin_cd(t_cmds *cmds);
 char	*ft_strword(const char *s);
 void	save_origin_fd();
 void	reset_input();
 void	reset_output();
+
 #endif

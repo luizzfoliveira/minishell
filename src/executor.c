@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:19:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 13:18:12 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 22:33:55 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ void	executor(t_cmds *cmds, t_vars **variables, char ***envp)
 			builtin_export(iter, variables, envp);
 		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "unset", ft_strlen(iter->cmd)))
 			builtin_unset(iter, variables, envp);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "cd", ft_strlen(iter->cmd)))
+			builtin_cd(iter);
 		else if (find_path(iter->cmd, *envp))
 			(execute(iter, *envp));
 		iter = iter->next;

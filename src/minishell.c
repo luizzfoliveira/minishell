@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 12:47:47 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 22:21:22 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,7 @@ int	main(int argc, char *argv[], char **envp)
 	char	*prompt;
 	char	**new_envp;
 
+	variables = 0;
 	new_envp = copy_envp(envp);
 	initialize_vars(&variables, envp);
 	recieve_signals();

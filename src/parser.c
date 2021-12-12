@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/27 16:09:19 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 14:23:47 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/11 17:39:03 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ void	add_variable(t_vars **variables, t_vars *new)
 	iter = *variables;
 	while (iter)
 	{
-		if (!ft_strncmp(iter->var, new->var, size_new))
+		if (iter->var && !ft_strncmp(iter->var, new->var, size_new))
 		{
 			free(iter->value);
 			iter->value = new->value;
