@@ -6,7 +6,7 @@
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/28 15:04:50 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 22:43:29 by felipe           ###   ########.fr       */
+/*   Updated: 2021/12/12 18:33:23 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,10 @@ char	**ft_split(char const *s, char c);
 char	*find_path(char *cmd, char **envp);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	*ft_strndup(const char *s, int len);
+char	*ft_concat(char **dest, char *src);
+char	*ft_strchr(const char *s, int c);
 char	*cmds_to_string(t_cmds *cmds);
+char	*ft_strdup(const char *s);
 char	*ft_itoa(int n);
 char	*get_prompt();
 char	*status_itoa();
@@ -81,13 +84,16 @@ int		builtin_export(t_cmds *cmds, t_vars **variables, char ***envp);
 int		builtin_unset(t_cmds *cmds, t_vars **variables, char ***envp);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 int		builtin_exit(t_cmds *cmds, t_vars *variables);
+int		builtin_cd(t_cmds *cmds, t_vars *variables);
+int		execute_file(t_cmds *cmds, char **envp);
 int		check_cmds(t_cmds *cmds, char **envp);
 int		check_unspecified_chars(char *line);
 int		execute(t_cmds *cmds, char **envp);
 int		open_file(char *argv, int i);
 int		check_quotation(char *line);
+int		builtin_pwd(void);
 int		ft_atoi(const char *str);
-int		builtin_cd(t_cmds *cmds);
+int		ft_strlen(char *str);
 char	*ft_strword(const char *s);
 void	save_origin_fd();
 void	reset_input();

@@ -1,34 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   builtin_cd.c                                       :+:      :+:    :+:   */
+/*   builtin_pwd.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/11 22:22:04 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/12 18:13:10 by felipe           ###   ########.fr       */
+/*   Created: 2021/12/12 17:54:32 by felipe            #+#    #+#             */
+/*   Updated: 2021/12/12 18:10:04 by felipe           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int	builtin_cd(t_cmds *cmds, t_vars *variables)
+int	builtin_pwd(void)
 {
-	int	result;
+	char	path[500];
 
-	if (cmds->args->next)
-	{
-		printf("cd: too many arguments\n");
-		return (1);
-	}
-	if (cmds->args->arg)
-		result = chdir(cmds->args->arg);
-	else
-		result = chdir(get_variable("HOME", 4, variables));
-	if (result == -1)
-	{
-		printf("cd: %s: No such file or directory\n", cmds->args->arg);
-		return (1);
-	}
+	getcwd(path, 500);
+	write(1, path, ft_strlen(path));
+	write(1, "\n", 1);
 	return (0);
 }

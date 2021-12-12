@@ -1,4 +1,5 @@
 SRCS		=	src/checkers.c\
+				src/execute.c\
 				src/execute_file.c\
 				src/executor.c\
 				src/minishell.c\
@@ -10,6 +11,7 @@ SRCS		=	src/checkers.c\
 				builtin/builtin_exit.c\
 				builtin/builtin_env.c\
 				builtin/builtin_export.c\
+				builtin/builtin_pwd.c\
 				builtin/builtin_unset.c\
 				utils/ft_atoi.c\
 				utils/ft_itoa.c\
