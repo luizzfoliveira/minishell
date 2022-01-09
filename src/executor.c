@@ -3,56 +3,93 @@
 /*                                                        :::      ::::::::   */
 /*   executor.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lufelipe <lufelipe@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/27 16:19:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/12 18:33:49 by felipe           ###   ########.fr       */
+/*   Created: 2022/01/03 11:18:39 by lufelipe          #+#    #+#             */
+/*   Updated: 2022/01/07 20:01:40 by lufelipe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	exec_env(char **envp)
+void	exec_builtin(t_cmds *cmds, t_data *data, char ***envp, t_sig **act)
 {
-	int	i;
+	t_cmds	*iter;
 
-	i = -1;
-	while (envp[++i])
+	iter = cmds;
+	if (iter != 0)
 	{
-		write(1, envp[i], ft_strlen(envp[i]));
-		write(1, "\n", 1);
+		if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "env", 3))
+			builtin_red(cmds, act, 3, *envp);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "echo", 4))
+			builtin_red(cmds, act, 1, *envp);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "pwd", 3))
+			builtin_red(cmds, act, 2, *envp);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "exit", 4))
+			builtin_exit(iter, data);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "export", 6))
+			builtin_export(iter, &data->variables, envp, data);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "unset", 5))
+			builtin_unset(iter, &data->variables, envp);
+		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "cd", 2))
+			builtin_cd(iter, data->variables);
 	}
 }
 
-void	executor(t_cmds *cmds, t_vars **variables, char ***envp)
+void	executor(t_data *data, char ***envp, t_sig **act)
 {
 	t_cmds	*iter;
-	t_cmds	*next;
-	t_args	*next_arg;
-	char	*line;
+	char	*path;
 
-	next_arg = cmds->args;
-	iter = cmds;
-	while (iter != 0)
+	iter = data->cmds;
+	while (iter)
 	{
-		if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "env", ft_strlen(iter->cmd)))
-			exec_env(*envp);
-		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "echo", ft_strlen(iter->cmd)))
-			ft_echo(iter);
-		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "exit", ft_strlen(iter->cmd)))
-			builtin_exit(iter, *variables);
-		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "export", ft_strlen(iter->cmd)))
-			builtin_export(iter, variables, envp);
-		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "unset", ft_strlen(iter->cmd)))
-			builtin_unset(iter, variables, envp);
-		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "cd", ft_strlen(iter->cmd)))
-			builtin_cd(iter, *variables);
-		else if (ft_strlen(iter->cmd) && !ft_strncmp(iter->cmd, "pwd", ft_strlen(iter->cmd)))
-			builtin_pwd();
-		else if (iter->cmd[0] == '.')
-			execute_file(iter, *envp);
-		else if (find_path(iter->cmd, *envp))
-			(execute(iter, *envp));
+		path = find_path(iter->cmd, *envp);
+		if (!is_builtin(iter->cmd) && (iter->cmd[0] == '.' \
+		|| iter->cmd[0] == '~' || iter->cmd[0] == '/' || path) \
+		&& iter->cmd[0] != 0)
+		{
+			g_reset_fd[2] = 0;
+			execute(iter, *envp, act, data);
+		}
+		else if (iter->cmd[0] != 0)
+			exec_builtin(iter, data, envp, act);
 		iter = iter->next;
+		free(path);
 	}
+	reset_input();
+	reset_output();
+}
+
+int	check_builtin_name(char *cmd, char *name)
+{
+	if (ft_strlen(cmd) == ft_strlen(name))
+	{
+		if (!(strncmp(cmd, name, ft_strlen(cmd))))
+			return (1);
+	}
+	return (0);
+}
+
+int	is_builtin(char *cmd)
+{
+	if (cmd)
+	{
+		if (check_builtin_name(cmd, "echo"))
+			return (1);
+		else if (check_builtin_name(cmd, "cd"))
+			return (1);
+		else if (check_builtin_name(cmd, "pwd"))
+			return (1);
+		else if (check_builtin_name(cmd, "export"))
+			return (1);
+		else if (check_builtin_name(cmd, "unset"))
+			return (1);
+		else if (check_builtin_name(cmd, "env"))
+			return (1);
+		else if (check_builtin_name(cmd, "exit"))
+			return (1);
+		return (0);
+	}
+	return (1);
 }

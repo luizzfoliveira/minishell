@@ -1,30 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   builtin_pwd.c                                      :+:      :+:    :+:   */
+/*   substitute_vars_utils.c                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lbricio- <lbricio-@student.42sp.org.br>    +#+  +:+       +#+        */
+/*   By: lufelipe <lufelipe@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/11 19:41:34 by lbricio-          #+#    #+#             */
-/*   Updated: 2021/12/19 17:02:45 by lbricio-         ###   ########.fr       */
+/*   Created: 2022/01/07 22:42:56 by lufelipe          #+#    #+#             */
+/*   Updated: 2022/01/07 22:43:08 by lufelipe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	builtin_pwd(t_cmds *cmds)
+char	*get_variable(char *line, int size, t_vars *variables)
 {
-	int		fd;
-	char	path[500];
+	t_vars	*iter;
 
-	getcwd(path, 500);
-	if (cmds->fd_out == 0)
-		fd = 1;
-	else if (cmds->fd_out == 1000)
-		fd = 0;
-	else
-		fd = cmds->fd_out;
-	write(fd, path, ft_strlen(path));
-	write(fd, "\n", 1);
-	exit(0);
+	iter = variables;
+	while (iter)
+	{
+		if (!ft_strncmp(iter->var, line, size))
+			return (iter->value);
+		iter = iter->next;
+	}
+	return ("");
 }

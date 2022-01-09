@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_exit.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lufelipe <lufelipe@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/04 20:13:44 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 12:27:59 by felipe           ###   ########.fr       */
+/*   Created: 2022/01/03 11:17:29 by lufelipe          #+#    #+#             */
+/*   Updated: 2022/01/03 11:17:32 by lufelipe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	free_args(t_args *args)
+/* void	free_args(t_args *args)
 {
 	t_args	*iter;
 	t_args	*next;
@@ -58,16 +58,7 @@ void	free_vars(t_vars *variables)
 		free(iter);
 		iter = next;
 	}
-}
-
-int	exit_error(int err, char *arg)
-{
-	if (err == 1)
-		printf("exit: too many arguments\n");
-	else if (err == 2)
-		printf("exit: %s: numeric argument required\n", arg);
-	return (err);
-}
+} */
 
 static int	check_arg(char *arg)
 {
@@ -82,7 +73,7 @@ static int	check_arg(char *arg)
 	return (0);
 }
 
-int	builtin_exit(t_cmds *cmds, t_vars *variables)
+int	builtin_exit(t_cmds *cmds, t_data *data)
 {
 	unsigned char	err;
 	t_args			*iter;
@@ -103,7 +94,6 @@ int	builtin_exit(t_cmds *cmds, t_vars *variables)
 		err = (unsigned char)ft_atoi(cmds->args->arg);
 	else
 		err = 0;
-	free_cmds(cmds);
-	free_vars(variables);
+	cleanup(data, 1);
 	exit(err);
 }

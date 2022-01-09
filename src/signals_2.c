@@ -1,29 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strncmp.c                                       :+:      :+:    :+:   */
+/*   signals_2.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lbricio- <lbricio-@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/10/27 12:18:59 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/10 01:50:29 by lbricio-         ###   ########.fr       */
+/*   Created: 2022/01/04 21:01:01 by lbricio-          #+#    #+#             */
+/*   Updated: 2022/01/07 12:38:17 by lbricio-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int	ft_strncmp(const char *s1, const char *s2, size_t n)
+void	heredoc_sigquit(int sig)
 {
-	size_t	i;
-
-	if (n == 0)
-		return (0);
-	i = 0;
-	while (s1[i] != 0 && s2[i] != 0 && i < n)
-	{
-		if ((unsigned char)s1[i] != (unsigned char)s2[i] || i == n - 1)
-			break ;
-		i++;
-	}
-	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
+	(void)sig;
+	g_reset_fd[2] = 42;
+	write(0, "\b\b  \b\b", 6);
 }
+
+/*
+void	heredoc_sigquit(int sig)
+{
+	(void)sig;
+	printf("Minihell: warning: here-document delimited");
+	printf("by end-of-file(wanted `eof')\n");
+	g_reset_fd[2] = 130;
+	exit(130);
+}*/

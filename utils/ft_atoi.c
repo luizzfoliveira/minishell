@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lufelipe <lufelipe@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/04 20:44:52 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/04 20:44:53 by felipe           ###   ########.fr       */
+/*   Created: 2022/01/03 11:20:35 by lufelipe          #+#    #+#             */
+/*   Updated: 2022/01/07 21:54:17 by lufelipe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-static int	ft_isspace(int c)
+int	ft_isspace(int c)
 {
 	if (c == ' ' || c == '\t' || c == '\v'
 		|| c == '\n' || c == '\f' || c == '\r')

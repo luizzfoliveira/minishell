@@ -3,72 +3,51 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felipe <felipe@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lufelipe <lufelipe@student.42sp.org.br>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/10/27 12:02:45 by felipe            #+#    #+#             */
-/*   Updated: 2021/12/11 22:21:22 by felipe           ###   ########.fr       */
+/*   Created: 2022/01/03 11:19:01 by lufelipe          #+#    #+#             */
+/*   Updated: 2022/01/08 13:40:28 by lufelipe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int g_reset_fd[3];
+int	g_reset_fd[3];
 
-int	str_to_cmd(char *str, int *j)
+int	read_lines(char **line, t_data *data, char ***envp, t_sig **act)
 {
-	int	len;
-	int	cmd;
+	t_cmds	*last;
+	int		err;
 
-	cmd = -1;
-	len = 0;
-	while (str[len + *j] != ' ' && str[len + *j] != '|' && str[len + *j] != 0)
-		len++;
-	if (!ft_strncmp(str + *j, "echo", len))
-		cmd = ECHO;
-	else if (!ft_strncmp(str + *j, "cd", len))
-		cmd = CD;
-	else if (!ft_strncmp(str + *j, "pwd", len))
-		cmd = PWD;
-	else if (!ft_strncmp(str + *j, "export", len))
-		cmd = EXPORT;
-	else if (!ft_strncmp(str + *j, "unset", len))
-		cmd = UNSET;
-	else if (!ft_strncmp(str + *j, "env", len))
-		cmd = ENV;
-	else if (!ft_strncmp(str + *j, "exit", len))
-		cmd = EXIT;
-	(*j) += len;
-	return (cmd);
-}
-
-char	*get_prompt()
-{
-	char	path[500];
-	char	*prompt;
-
-	getcwd(path, 500);
-	prompt = ft_strjoin(path, "# ");
-	return (prompt);
-}
-
-int	read_lines(char **line, t_vars **variables, char ***envp)
-{
-	substitute_variables(line, *variables);
-	while(parser(*line, variables, envp));
+	substitute_variables(line, data);
+	err = parser(*line, data, envp, act);
+	last = data->cmds;
+	while (last->next)
+	{
+		if (last->fd_in != 0)
+			break ;
+		last = last->next;
+	}
+	if (last != data->cmds && data->cmds->fd_in == 0 \
+	&& last->fd_in != 0 && last->next == 0)
+	{
+		data->cmds->fd_in = last->fd_in;
+		last->fd_in = 0;
+	}
 	free(*line);
-	return (1);
+	return (err);
 }
 
-t_vars	*initialize_vars(t_vars **variables, char **envp)
+void	initialize_vars(t_data *data, char **envp)
 {
 	int	count;
 	int	i;
 
-	i = -1;
-	count = 0;
 	save_origin_fd();
+	count = 0;
+	i = -1;
 	while (envp[++i] != 0)
-		save_env_var(envp[i], &count, variables);
+		save_env_var(envp[i], &count, data, 1);
 }
 
 char	**copy_envp(char **envp)
@@ -80,46 +59,68 @@ char	**copy_envp(char **envp)
 	while (envp[i])
 		i++;
 	new = ft_calloc(i + 1, sizeof (char *));
+	if (!new)
+		return (0);
 	i = -1;
 	while (envp[++i])
+	{
 		new[i] = ft_strdup(envp[i]);
+		if (!new[i])
+		{
+			while (--i > 0)
+				free(new[i]);
+			return (0);
+		}
+	}
 	return (new);
+}
+
+int	run_parser(char *line, t_data *data, t_sig **act)
+{
+	if (!line)
+	{
+		data->cmds = 0;
+		cleanup(data, 2);
+	}
+	if (line[0] != 0)
+	{
+		add_history(line);
+		if (check_quotation(line, data))
+		{
+			printf("Unclosed quotation\n");
+			free(line);
+		}
+		else if (check_unspecified_chars(line, data))
+			free(line);
+		else if (read_lines(&line, data, &data->envp, act) == -1)
+			return (-1);
+	}
+	else
+		free(line);
+	return (0);
 }
 
 int	main(int argc, char *argv[], char **envp)
 {
-	t_vars	*variables;
-	t_cmds	*cmds;
+	t_data	data;
 	char	*line;
-	char	*prompt;
-	char	**new_envp;
+	t_sig	act;
+	t_sig	act_quit;
 
-	variables = 0;
-	new_envp = copy_envp(envp);
-	initialize_vars(&variables, envp);
-	recieve_signals();
+	data.variables = 0;
+	data.envp = copy_envp(envp);
+	if (argc != 1 || argv[1])
+		return (0);
+	initialize_vars(&data, envp);
+	config_sigaction(&act, sigint_handle, SIGINT);
+	config_sigaction(&act_quit, SIG_IGN, SIGQUIT);
 	while (1)
 	{
-		prompt = get_prompt();
-		line = readline(prompt);
-		free(prompt);
-		if (!line)
-			break ;
-		if (line[0] != 0)
-		{
-			add_history(line);
-			if (check_quotation(line))
-			{
-				printf("Unclosed quotation\n");
-				free(line);
-			}
-			else if (check_unspecified_chars(line))
-				free(line);
-			else if (!read_lines(&line, &variables, &new_envp))
-				return (0);
-		}
-		else
-			free(line);
+		data.cmds = 0;
+		line = readline("\001\033[1;33m\002Minishell> \001\033[0m\002");
+		if (run_parser(line, &data, (void *)&act) != -1)
+			executor(&data, &data.envp, (void *)&act);
+		cleanup(&data, 0);
 	}
 	rl_clear_history();
 }
